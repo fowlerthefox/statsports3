@@ -1,0 +1,47 @@
+version: '3'
+services:
+  db:
+    build:
+      context: ./db
+      dockerfile: Dockerfile.dev
+    restart: always
+    environment:
+      # If you need to create multiple database you can add coma separated databases eg gis,data
+      - POSTGRES_DB=trackingdata
+      - POSTGRES_HOST=db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASS=password
+      - ALLOW_IP_RANGE=0.0.0.0/0
+      # Add extensions you need to be enabled by default in the DB. Default are the three specified below
+      - POSTGRES_MULTIPLE_EXTENSIONS=postgis,hstore,postgis_topology
+    ports:
+      - "25432:5432"
+  app:
+    build: 
+      context: ./Statsports_Dashboard
+      dockerfile: Dockerfile.dev
+    restart: always
+    volumes: 
+      - .:/app
+    depends_on:
+      - db
+    links:
+      - db
+    environment:
+      PGHOST: 'db'
+      POSTGRES_HOST: 'db'
+      PGDATABASE: 'trackingdata'
+      POSTGRES_DB: 'trackingdata'
+      PGUSER: 'postgres'
+      POSTGRES_USER: 'postgres'
+      PGPASSWORD: 'password'
+      POSTGRES_PASS: 'password'
+  nginx:
+    restart: always
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile.dev
+    ports:
+      - '4000:80'
+    depends_on:
+      - app

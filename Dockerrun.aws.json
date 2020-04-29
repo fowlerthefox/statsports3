@@ -1,0 +1,28 @@
+{
+    "AWSEBDockerrunVersion": 2,
+    "containerDefinitions": [
+        {
+            "name": "app",
+            "image": "ciaransheelan/statsports-app",
+            "hostname": "app",
+            "essential": true,
+            "memoryReservation": 256
+        },
+        {
+            "name": "nginx",
+            "image": "ciaransheelan/statsports-nginx",
+            "hostname": "nginx",
+            "essential": true,
+            "memoryReservation": 256,
+            "portMappings": [
+                {
+                    "hostPort": 80,
+                    "containerPort": 80
+                }
+            ],
+            "links": [
+                "app"
+            ]
+        }
+    ]
+}

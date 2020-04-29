@@ -1,0 +1,19 @@
+version: 0.2
+phases: 
+  pre_build: 
+    commands: 
+      - "echo Logging in to Docker Hub..."
+      - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  build: 
+    commands: 
+      - "echo Building the Docker image..."
+      - docker build -t ciaransheelan/statsports-app ./Statsports_Dashboard
+      - docker build -t ciaransheelan/statsports-nginx ./nginx
+  post_build: 
+    commands: 
+      - "echo Pushing the Docker image..."
+      - docker push ciaransheelan/statsports-app
+      - docker push ciaransheelan/statsports-nginx
+artifacts:
+  files:
+    - 'Dockerrun.aws.json'
