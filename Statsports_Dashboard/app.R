@@ -23,17 +23,18 @@ plan(multiprocess)
 # bring in our custom functions
 source('./functions.R')
 
-initConnection <- function(db = 'trackingdata'){
+# postgres connection using enviromental variables set up in docker-compose (which were also set in AWS)
+initConnection <- function(db = Sys.getenv('POSTGRES_DB')){
   pool::dbPool(
     RPostgreSQL::PostgreSQL(),
     minSize = 0,
     maxSize = Inf,
     idleTimeout = 0,
     dbname = db,
-    host = "db",
-    user = "postgres",
-    password= "password"
-  )   
+    host = Sys.getenv('POSTGRES_HOST'),
+    user = Sys.getenv('POSTGRES_USER'),
+    password= Sys.getenv('POSTGRES_PASS')
+  )
 }
 
 # init new bootstrap theme
