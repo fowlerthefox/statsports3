@@ -64,7 +64,7 @@ ui <- bootstrapPage(bootstrap(),
                     # nav bar
                     div(class="navbar mb-3 bg-primary",
                         div(class="container",
-                            tags$img(height = 50, width = 200, src = "https://image4.owler.com/logo/statsports_owler_20191115_201345_original.jpg", href = "https://statsports.com/")
+                            tags$img()
                         )
                     ),
                     
@@ -83,6 +83,10 @@ ui <- bootstrapPage(bootstrap(),
                         div(class="tabbable",
                             tags$ul(class="nav nav-tabs mb-2",
                                     tags$li(class="active mr-2",
+                                            tags$a(href="#tabhome", `data-toggle`="tab", class ="bg-danger",
+                                                   "Home")
+                                    ),
+                                    tags$li(class="mr-2",
                                             tags$a(href="#tab1", `data-toggle`="tab", class ="bg-danger",
                                                    "Player Stats")
                                     ),
@@ -96,7 +100,10 @@ ui <- bootstrapPage(bootstrap(),
                                     )
                             ),
                             div(class="tab-content",
-                                div(class="tab-pane active fade show", id="tab1",
+                                div(class="tab-pane active fade show", id="tabhome",
+                                    source('./tab-home.R', local=TRUE)$value
+                                ),
+                                div(class="tab-pane fade", id="tab1",
                                     source('./tab-1.R', local=TRUE)$value
                                 ),
                                 div(class="tab-pane fade", id="tab2",
@@ -465,7 +472,7 @@ server <- function(input, output, session) {
           theme_pitch() +
           stat_density2d(aes(fill=..level..),geom='polygon',colour=NA) + 
           scale_fill_continuous(low="yellow",high="red") +
-          theme(plot.background = element_rect(fill = 'red'))
+          theme(plot.background = element_rect(fill = 'white'), legend.position = "none")
         
       }
     }, error= function(err){
@@ -539,6 +546,35 @@ server <- function(input, output, session) {
         ggplot() +
         geom_bar(aes(x = player_display_name, y=distance, fill=player_display_name), stat = 'identity') +
         geom_hline(aes(yintercept = mean(distance))) +
+        ggthemes::theme_solarized(light=FALSE) +
+        theme(legend.position = 'bottom',
+              legend.title = element_blank()) 
+      
+      ggplotly(p)
+    }
+  })
+  
+  output$comparison_speed <- renderPlotly({
+    comparison_data() %...>% {
+      p <- group_by(.,player_display_name) %>%
+        summarise(maxspeed = max(speed_m_s)) %>%
+        ggplot() +
+        geom_point(aes(x = player_display_name, y=maxspeed, fill=player_display_name, size = maxspeed), stat = 'identity') +
+        geom_hline(aes(yintercept = mean(maxspeed))) +
+        ggthemes::theme_solarized(light=FALSE) +
+        theme(legend.position = 'bottom',
+              legend.title = element_blank()) 
+      
+      ggplotly(p)
+    }
+  })
+  
+  output$comparison_heartrate <- renderPlotly({
+    comparison_data() %...>% {
+      p <- group_by(.,player_display_name) %>%
+        summarise(avgHR = mean(heart_rate_bpm)) %>%
+        ggplot() +
+        geom_bar(aes(x = player_display_name, y=avgHR, fill=player_display_name), stat = 'identity') +
         ggthemes::theme_solarized(light=FALSE) +
         theme(legend.position = 'bottom',
               legend.title = element_blank()) 
