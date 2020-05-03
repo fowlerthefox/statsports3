@@ -3,7 +3,7 @@ library(promises)
 library(future)
 plan(multiprocess)
 
-# bring in our custom functions
+# bring in custom functions
 source('./functions.R')
 
 

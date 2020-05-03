@@ -27,6 +27,7 @@ COPY functions.R /srv/shiny-server/
 COPY tab-1.R /srv/shiny-server/
 COPY tab-2.R /srv/shiny-server/
 COPY tab-3.R /srv/shiny-server/
+COPY tab-home.R /srv/shiny-server/
 COPY shiny-server.sh /usr/bin/shiny-server.sh
 
 # select port

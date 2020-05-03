@@ -154,7 +154,9 @@ read_with_metadata <- function(path, con=con){
   dbSendQuery(con, 'DROP TABLE temp_tbl2;')
 }
 
-# we need to manually fix the path: Data/Team 1/20190415. MD/2019-04-15-Sonra 02-RawDataExport.csv
+# need to manually fix the path: Data/Team 1/20190415. MD/2019-04-15-Sonra 02-RawDataExport.csv
+
+# read in all files using function to clean data from paths found in loop
 lapply(my_paths, function(x) read_with_metadata(x, con))
 
 

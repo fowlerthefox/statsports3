@@ -36,10 +36,11 @@ initConnection <- function(db = Sys.getenv('postgres_db')){
   
 }
 
+
 # init new bootstrap theme
 bs_theme_new(bootswatch = 'darkly')
 # alter bs theme variables
-## Variables we can override: https://github.com/twbs/bootstrap/blob/v4-dev/scss/_variables.scss
+## Variables override: https://github.com/twbs/bootstrap/blob/v4-dev/scss/_variables.scss
 bs_theme_add_variables(
   "danger" = "#bf4600",
   "font-family-base" = "Roboto"
@@ -47,7 +48,7 @@ bs_theme_add_variables(
 
 
 
-# connect to database with pool connection more effiecent, connections can be re-used
+# connect database use pool connection
 pool <- initConnection()
 
 
@@ -78,7 +79,7 @@ ui <- bootstrapPage(bootstrap(),
                             )
                         ),
                         
-                        
+                        # add tabs
                         div(class="tabbable",
                             tags$ul(class="nav nav-tabs mb-2",
                                     tags$li(class="active mr-2",
@@ -98,6 +99,7 @@ ui <- bootstrapPage(bootstrap(),
                                                    "Team Comparison")
                                     )
                             ),
+                            # link tabs with .r files
                             div(class="tab-content",
                                 div(class="tab-pane active fade show", id="tabhome",
                                     source('./tab-home.R', local=TRUE)$value
@@ -187,7 +189,7 @@ server <- function(input, output, session) {
     })
   })
   
-  # update the match input
+  # update the date input
   observe({
     tryCatch({
       updateSelectInput(session, 'date_input',  choices = matchdate_opts(),selected = matchdate_opts()[1])
@@ -221,7 +223,7 @@ server <- function(input, output, session) {
     })
   })
   
-  
+  # update the time input
   observe({
     tryCatch({
       min_time <- min(time_opts(),na.rm = T)
@@ -235,7 +237,6 @@ server <- function(input, output, session) {
   })
   
   # assign data that relies on changing inputs
-  # wrap code in tryCatch like so: 
   data <- reactive({
     # only react when time changes ( it is the last of the inputs to update )
     # validate(need(!identical(input$time, c(1:5))))
@@ -250,7 +251,7 @@ server <- function(input, output, session) {
       date_input <- local(input$date_input)
       
       future({
-        # we have to open up a new connection and close it again within future
+        # open up a new connection and close it again within future
         pool <- initConnection()
         on.exit(pool::poolClose(pool))
         
@@ -268,8 +269,7 @@ server <- function(input, output, session) {
   })
   
   
-  
-  # plots
+  # plot objects
   # heart rate per minute over time
   output$hrPlot <- renderPlot({
     data() %...>% {
@@ -285,7 +285,7 @@ server <- function(input, output, session) {
     } 
   })
   
-  # accumalated distance over time
+  #accumalated distance over time
   output$distPlot <- renderPlot({
     data() %...>%
       {
@@ -303,7 +303,7 @@ server <- function(input, output, session) {
     
   })
   
-  # speed distance over time
+  #speed distance over time
   output$speedPlot <- renderPlot({
     data() %...>% {
       arrange(.,seconds) %>% 
@@ -318,8 +318,6 @@ server <- function(input, output, session) {
     }
     
   })
-  
-
   
   # distance text output
   output$distanceOutput2 <- output$distanceOutput <- renderText({ 
@@ -339,6 +337,7 @@ server <- function(input, output, session) {
     })
   })
   
+  # name text ouput
   output$nameOutput <- renderText({ tryCatch({
     data() %...>% {
       head(.,1) %>%
@@ -353,6 +352,7 @@ server <- function(input, output, session) {
   })
   })
   
+  # date text output
   output$dateOutput <- renderText({ tryCatch({
     data() %...>% {
       head(.,1) %>%
@@ -367,7 +367,7 @@ server <- function(input, output, session) {
   })
   })
   
-  
+  # max speed text output 
   output$mSpeedOutput <- renderText({
     tryCatch({
       data() %...>% {
@@ -383,6 +383,7 @@ server <- function(input, output, session) {
     })
   })
   
+  # high speed running over 7m/s text output
   output$hSpeedOutput <- renderText({
     tryCatch({
       data() %...>% {
@@ -409,8 +410,7 @@ server <- function(input, output, session) {
     })
   })
   
-  
-  
+  # accelration count text output
   output$accOutput <- renderText({
     tryCatch({
       data() %...>% {
@@ -426,6 +426,7 @@ server <- function(input, output, session) {
     }) 
   })
   
+  # decelration count text ouput
   output$decOutput <- renderText({ tryCatch({
     data() %...>% {
       decel <- summarise(.,decel = sum(instantaneous_acceleration_impulse < 0), na.rm=T) 
@@ -441,6 +442,7 @@ server <- function(input, output, session) {
     
   })
   
+  # max heart rate text output
   output$hrOutput <- renderText({ tryCatch({
     data() %...>% {
       heart <- summarise(.,hr = max(heart_rate_bpm), na.rm=T)
@@ -458,8 +460,8 @@ server <- function(input, output, session) {
   
   #-------------------------------
   # TAB 2 
-  # add plot of pitch
   
+  # plot of pitch with heatmap
   output$pitchPlot <- renderPlot({
     tryCatch({
       data() %...>% {
@@ -484,8 +486,8 @@ server <- function(input, output, session) {
   
   #-------------------------------
   # TAB 3
-  # player comparisons
   
+  # player comparisons set new reactive filter
   comparison_data <- reactive({
     tm$v
     input$time
@@ -497,7 +499,7 @@ server <- function(input, output, session) {
       min_time <- min(local(input$time))
       
       future({
-        # iwe have to open up a new connection and close it again within future
+        # open up a new connection and close it again within future
         pool <- initConnection()
         on.exit(pool::poolClose(pool))
         
@@ -521,6 +523,7 @@ server <- function(input, output, session) {
     
   })
   
+  # average poisition pitch plot
   output$comparison_plot <- renderPlotly({
     comparison_data() %...>% {
       p <- group_by(.,player_display_name) %>%
@@ -539,6 +542,7 @@ server <- function(input, output, session) {
     
   })
   
+  # total distance by player plot
   output$comparison_bar <- renderPlotly({
     comparison_data() %...>% {
       p <- group_by(.,player_display_name) %>%
@@ -554,6 +558,7 @@ server <- function(input, output, session) {
     }
   })
   
+  # max speed by player plot
   output$comparison_speed <- renderPlotly({
     comparison_data() %...>% {
       p <- group_by(.,player_display_name) %>%
@@ -569,6 +574,7 @@ server <- function(input, output, session) {
     }
   })
   
+  # average heart rate by player plot
   output$comparison_heartrate <- renderPlotly({
     comparison_data() %...>% {
       p <- group_by(.,player_display_name) %>%
@@ -593,5 +599,4 @@ onStop(function() {
 shinyApp(ui, server)
 
 # profvis({runApp()})
-
 
