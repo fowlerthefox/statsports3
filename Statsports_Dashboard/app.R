@@ -59,7 +59,12 @@ date_choices <- ''
 seconds <- c(1:100)
 
 
-ui <- bootstrapPage(bootstrap(),
+bs <- bootstrap()
+bs[[1]] <- htmltools::htmlDependency("jquery", "3.4.1",
+                                     src = c(href = "https://code.jquery.com/"),
+                                     script = "jquery-3.4.1.min.js")
+
+ui <- bootstrapPage(bs,
                     tags$head(tags$script(src="https://kit.fontawesome.com/7d28f142d5.js", crossorigin="anonymous")),
                     # nav bar
                     div(class="navbar mb-3 bg-primary",
